@@ -45,6 +45,7 @@ from settings import (
     APP_NAME,
     APP_VERSION,
     COPYRIGHT,
+    UI_FONT_FAMILIES,
     Settings,
     format_time,
     load_last_script,
@@ -127,7 +128,8 @@ class EditorWindow(QMainWindow):
     def _build_layout(self) -> None:
         # --- Editor naskah ---
         self.editor = QPlainTextEdit()
-        editor_font = QFont("Segoe UI")
+        editor_font = QFont()
+        editor_font.setFamilies(UI_FONT_FAMILIES)
         editor_font.setPointSize(13)
         self.editor.setFont(editor_font)
         self.editor.setPlaceholderText("Tulis atau tempel naskah di sini...")

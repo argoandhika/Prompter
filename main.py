@@ -6,8 +6,8 @@ main.py
 Titik awal aplikasi Prompter. Jalankan:  python main.py
 Bisa juga membuka file langsung:          python main.py naskah.txt
 
-Jika terjadi error, pesan akan muncul dan detailnya disimpan ke:
-    %APPDATA%\\Prompter\\error.log
+Jika terjadi error, pesan akan muncul dan detailnya disimpan ke file
+error.log di folder data aplikasi (lihat settings._data_dir).
 """
 
 import datetime

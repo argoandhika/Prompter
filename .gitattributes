@@ -1,0 +1,5 @@
+# Script shell harus memakai akhir baris Unix (LF) agar bisa jalan di macOS / Linux
+*.sh text eol=lf
+*.yml text eol=lf
+# Script Windows memakai CRLF
+*.bat text eol=crlf

@@ -5,10 +5,8 @@ settings.py
 ===========
 Tempat SEMUA pengaturan aplikasi didefinisikan, disimpan, dan dimuat.
 
-Pengaturan disimpan otomatis ke file JSON:
-    %APPDATA%\\Prompter\\pengaturan.json
-Naskah terakhir disimpan otomatis ke:
-    %APPDATA%\\Prompter\\naskah_terakhir.txt
+Pengaturan & naskah terakhir disimpan otomatis ke folder data (lihat _data_dir):
+    pengaturan.json, naskah_terakhir.txt, error.log
 
 >>> Ingin menambah pengaturan baru? Lihat README.md bagian
     "Cara menambah pengaturan baru".
@@ -16,17 +14,41 @@ Naskah terakhir disimpan otomatis ke:
 
 import json
 import os
+import sys
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 
+IS_WINDOWS = sys.platform == "win32"
+IS_MAC = sys.platform == "darwin"
+
 # Info aplikasi (tampil di judul jendela, menu Tentang, dan bantuan F1)
 APP_NAME = "Prompter"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.1.0"
 APP_AUTHOR = "Argo Andhika Nugroho"
 COPYRIGHT = f"© 2026 {APP_AUTHOR}"
 
-# Folder penyimpanan data aplikasi (di Windows: C:\Users\<nama>\AppData\Roaming\Prompter)
-APP_DIR = Path(os.environ.get("APPDATA", Path.home())) / "Prompter"
+# Huruf antarmuka (bar info, bantuan, editor). Dipakai yang pertama tersedia
+# di OS tersebut: Windows, macOS, Linux (Ubuntu / lainnya).
+UI_FONT_FAMILIES = ["Segoe UI", "Helvetica Neue", "Ubuntu", "Noto Sans", "DejaVu Sans", "Arial"]
+
+
+def _data_dir() -> Path:
+    """Folder data aplikasi sesuai standar tiap OS:
+    Windows : C:\\Users\\<nama>\\AppData\\Roaming\\Prompter
+    macOS   : ~/Library/Application Support/Prompter
+    Linux   : ~/.config/Prompter  (atau $XDG_CONFIG_HOME/Prompter)
+    """
+    home = Path.home()
+    if IS_WINDOWS:
+        base = Path(os.environ.get("APPDATA", home))
+    elif IS_MAC:
+        base = home / "Library" / "Application Support"
+    else:
+        base = Path(os.environ.get("XDG_CONFIG_HOME") or home / ".config")
+    return base / APP_NAME
+
+
+APP_DIR = _data_dir()
 SETTINGS_FILE = APP_DIR / "pengaturan.json"
 LAST_SCRIPT_FILE = APP_DIR / "naskah_terakhir.txt"
 

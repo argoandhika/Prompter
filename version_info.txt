@@ -3,8 +3,8 @@
 # ubah angka versi di sini DAN APP_VERSION di settings.py.
 VSVersionInfo(
   ffi=FixedFileInfo(
-    filevers=(1, 0, 0, 0),
-    prodvers=(1, 0, 0, 0),
+    filevers=(1, 1, 0, 0),
+    prodvers=(1, 1, 0, 0),
     mask=0x3f,
     flags=0x0,
     OS=0x40004,
@@ -17,12 +17,12 @@ VSVersionInfo(
       StringTable('040904B0', [
         StringStruct('CompanyName', 'Argo Andhika Nugroho'),
         StringStruct('FileDescription', 'Prompter - Aplikasi Teleprompter'),
-        StringStruct('FileVersion', '1.0.0'),
+        StringStruct('FileVersion', '1.1.0'),
         StringStruct('InternalName', 'Prompter'),
         StringStruct('LegalCopyright', 'Copyright (c) 2026 Argo Andhika Nugroho. MIT License.'),
         StringStruct('OriginalFilename', 'Prompter.exe'),
         StringStruct('ProductName', 'Prompter'),
-        StringStruct('ProductVersion', '1.0.0'),
+        StringStruct('ProductVersion', '1.1.0'),
       ])
     ]),
     VarFileInfo([VarStruct('Translation', [0x0409, 1200])])

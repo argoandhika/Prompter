@@ -40,7 +40,16 @@ from PySide6.QtGui import (
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 
 from control_bar import ControlBar
-from settings import APP_NAME, APP_VERSION, COPYRIGHT, SPEED_FACTOR, Settings, format_time
+from settings import (
+    APP_NAME,
+    APP_VERSION,
+    COPYRIGHT,
+    IS_WINDOWS,
+    SPEED_FACTOR,
+    UI_FONT_FAMILIES,
+    Settings,
+    format_time,
+)
 
 # Teks bantuan yang muncul saat menekan F1 / H
 HELP_LINES = [
@@ -69,7 +78,8 @@ ALIGNMENTS = {
     "rata": Qt.AlignmentFlag.AlignJustify,
 }
 
-UI_FONT = "Segoe UI"                # huruf untuk bar info, pesan, dan bantuan
+# Windows: tinggi layar penuh +1 piksel (lihat set_fullscreen). OS lain: 0.
+FULLSCREEN_EXTRA_PIXEL = 1 if IS_WINDOWS else 0
 GUIDE_COLOR = QColor(255, 70, 70)   # warna panah penanda baca
 HUD_DURATION_MS = 1200              # lama pesan singkat (mis. "Jeda") tampil
 TILE_HEIGHT = 256                   # tinggi satu potongan gambar naskah (piksel); kecil = render lebih ringan
@@ -350,20 +360,34 @@ class PrompterWindow(QOpenGLWidget):
         self.set_fullscreen(not self.is_fullscreen)
 
     def set_fullscreen(self, on: bool) -> None:
-        """Layar penuh versi 'jendela tanpa bingkai seukuran monitor'.
+        """Layar penuh.
 
-        Fullscreen asli (showFullScreen) pada jendela OpenGL membuat Windows
-        memakai mode eksklusif; di monitor utama tampilannya bisa macet.
-        Tinggi +1 piksel mencegah Windows mendeteksinya sebagai fullscreen eksklusif.
+        Windows: 'jendela tanpa bingkai seukuran monitor'. Fullscreen asli
+        (showFullScreen) pada jendela OpenGL membuat Windows memakai mode eksklusif;
+        di monitor utama tampilannya bisa macet. Tinggi +1 piksel mencegah Windows
+        mendeteksinya sebagai fullscreen eksklusif.
+        macOS / Linux: fullscreen asli (menutupi menu bar / panel).
         """
         center = self.geometry().center()
         screen = QGuiApplication.screenAt(center) or self.screen()
         area = screen.geometry()
+        if on and not self.is_fullscreen:
+            self.normal_geometry = self.geometry()
+
+        if not IS_WINDOWS:
+            if on:
+                self.showFullScreen()
+            else:
+                self.showNormal()
+                self.setGeometry(self.normal_geometry or centered_rect(area))
+            self.is_fullscreen = on
+            self.activateWindow()
+            self.setFocus()
+            return
+
         if on:
-            if not self.is_fullscreen:
-                self.normal_geometry = self.geometry()
             self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
-            self.setGeometry(area.x(), area.y(), area.width(), area.height() + 1)
+            self.setGeometry(area.x(), area.y(), area.width(), area.height() + FULLSCREEN_EXTRA_PIXEL)
         else:
             self.setWindowFlags(Qt.WindowType.Window)
             if self.normal_geometry and self.normal_geometry.width() < area.width():
@@ -790,7 +814,7 @@ class PrompterWindow(QOpenGLWidget):
     def resizeGL(self, w: int, h: int) -> None:
         self.rebuild_document()   # lebar berubah -> susun ulang baris
         bar_height = self.control_bar.sizeHint().height()
-        hidden_pixel = 1 if self.is_fullscreen else 0   # lihat set_fullscreen()
+        hidden_pixel = FULLSCREEN_EXTRA_PIXEL if self.is_fullscreen else 0   # lihat set_fullscreen()
         self.control_bar.setGeometry(0, self.height() - bar_height - hidden_pixel, self.width(), bar_height)
 
     def closeEvent(self, event) -> None:
@@ -809,7 +833,8 @@ def centered_rect(area: QRect, fraction: float = 0.7) -> QRect:
 
 
 def _ui_font(pixel_size: int, bold: bool = False) -> QFont:
-    font = QFont(UI_FONT)
+    font = QFont()
+    font.setFamilies(UI_FONT_FAMILIES)
     font.setPixelSize(max(1, pixel_size))
     font.setBold(bold)
     return font

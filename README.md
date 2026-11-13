@@ -2,8 +2,20 @@
 
 **© 2026 Argo Andhika Nugroho** · Lisensi [MIT](LICENSE)
 
-Aplikasi teleprompter desktop untuk Windows. Terinspirasi dari promptr.co dan teleprompter-online.com.
-Dibuat dengan **Python + PySide6 (Qt)** dan dibungkus menjadi `Aplikasi\Prompter.exe`.
+Aplikasi teleprompter desktop untuk **Windows, macOS, dan Linux**.
+Terinspirasi dari promptr.co dan teleprompter-online.com. Dibuat dengan **Python + PySide6 (Qt)**.
+
+## Download & pasang
+
+Ambil file untuk OS Anda di halaman [**Releases**](../../releases/latest):
+
+| OS | File | Cara pakai |
+|---|---|---|
+| **Windows 10/11** | `Prompter-vX.Y.Z-windows.zip` | Ekstrak, klik dua kali `Prompter\Prompter.exe`. Jika muncul SmartScreen: *More info → Run anyway*. |
+| **macOS** (Apple Silicon M1/M2/M3/M4) | `Prompter-vX.Y.Z-macos.zip` | Ekstrak, pindahkan `Prompter.app` ke *Applications*. Pertama kali: **klik kanan → Open → Open** (aplikasi belum ditandatangani Apple). |
+| **Linux** (x86-64, glibc 2.35+) | `Prompter-vX.Y.Z-linux.tar.gz` | `tar -xzf Prompter-*-linux.tar.gz` lalu jalankan `./Prompter/Prompter` |
+
+Tidak perlu menginstal Python. Di macOS, tombol **Ctrl** pada tabel di bawah = **⌘ Command**.
 
 ## Fitur
 
@@ -55,9 +67,12 @@ Prompter/
 ├── control_bar.py       Panel pengaturan satu baris di bawah layar baca
 ├── settings.py          Daftar pengaturan + simpan/muat JSON + format_time
 ├── requirements.txt     Library yang dibutuhkan
-├── build_exe.bat        Script untuk membuat Prompter.exe
+├── build_exe.bat        Build manual di Windows  -> Aplikasi\Prompter.exe
+├── build.sh             Build manual di macOS / Linux -> Aplikasi/Prompter.app atau Aplikasi/Prompter/
+├── version_info.txt     Info versi & copyright yang tertanam di Prompter.exe
+├── .github/workflows/build.yml   Build otomatis 3 OS + Release di GitHub Actions
 ├── .venv\               Python + library khusus proyek ini (dibuat otomatis, jangan diedit)
-└── Aplikasi\            HASIL BUILD: Prompter.exe + _internal\ (dibuat ulang setiap build)
+└── Aplikasi\            HASIL BUILD lokal (dibuat ulang setiap build, tidak masuk git)
 ```
 
 Alur data: `EditorWindow` dan `PrompterWindow` memakai **objek `Settings` yang sama**.
@@ -71,37 +86,72 @@ Kenapa gulirnya mulus (lihat juga komentar di `prompter_window.py`):
 - Naskah dirender sekali jadi tile gambar, lalu digeser di posisi sub-piksel (OpenGL).
 - Jam animasi dibulatkan ke kelipatan refresh monitor (`_frame_seconds`), jadi setiap
   gambar yang tampil bergeser dengan jarak yang sama.
-- Layar penuh = jendela tanpa bingkai +1 piksel (`set_fullscreen`), bukan fullscreen asli,
-  karena fullscreen OpenGL asli bisa macet di monitor utama Windows.
+- Layar penuh di Windows = jendela tanpa bingkai +1 piksel (`set_fullscreen`), bukan fullscreen
+  asli, karena fullscreen OpenGL asli bisa macet di monitor utama Windows. macOS/Linux memakai
+  fullscreen asli.
 - Gulir manual (roda/panah) memakai model pegas (`_advance_manual_scroll`): kecepatan
   naik-turun bertahap. Atur rasanya lewat `SCROLL_SPRING` dan `WHEEL_STEP_LINES`.
 
-Data pengguna disimpan di `%APPDATA%\Prompter\`
-(`pengaturan.json` dan `naskah_terakhir.txt`). Hapus folder itu untuk reset total.
+Data pengguna (`pengaturan.json`, `naskah_terakhir.txt`, `error.log`) disimpan di:
+
+| OS | Folder |
+|---|---|
+| Windows | `%APPDATA%\Prompter\` |
+| macOS | `~/Library/Application Support/Prompter/` |
+| Linux | `~/.config/Prompter/` |
+
+Hapus folder itu untuk reset total. Jika terjadi error, detailnya tercatat di `error.log`.
 
 ## Menjalankan dari kode (untuk development)
 
+Windows:
 ```bat
 python -m venv .venv
 .venv\Scripts\pip install -r requirements.txt
 .venv\Scripts\python main.py
 ```
+macOS / Linux:
+```sh
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/python main.py
+```
 
-## Membuat file .exe
+## Membuat aplikasi secara manual
 
-Klik dua kali **`build_exe.bat`** (tutup Prompter dulu). Hasilnya: jalankan **`Aplikasi\Prompter.exe`**.
-Folder `_internal` di sebelahnya berisi library Python/Qt dan **wajib ada**, jangan dihapus.
-File sementara build dihapus otomatis.
+PyInstaller hanya bisa membuat aplikasi untuk OS tempat ia dijalankan
+(exe Windows harus dibuat di Windows, aplikasi Mac di Mac, dst.).
+
+- **Windows**: klik dua kali **`build_exe.bat`** (tutup Prompter dulu). Hasil: **`Aplikasi\Prompter.exe`**.
+  Folder `_internal` di sebelahnya berisi library Python/Qt dan **wajib ada**.
+- **macOS / Linux**: jalankan `bash build.sh`. Hasil: `Aplikasi/Prompter.app` (Mac) atau
+  `Aplikasi/Prompter/Prompter` (Linux).
+
 Untuk dipindah ke komputer lain, salin/zip **seluruh folder** `Aplikasi` (tidak perlu instal Python).
 
-Jika terjadi error, detailnya tercatat di `%APPDATA%\Prompter\error.log`.
+## Build otomatis 3 OS & merilis versi baru (GitHub Actions)
+
+File `.github/workflows/build.yml` membuat versi Windows, macOS, dan Linux di server GitHub.
+
+- **Setiap push ke `main`**: GitHub membuat & menguji aplikasi di 3 OS. Hasilnya bisa diunduh untuk
+  dicoba di tab **Actions** → pilih run → bagian **Artifacts**.
+- **Merilis versi baru**:
+  1. Naikkan versi di `settings.py` (`APP_VERSION`) dan `version_info.txt`, lalu commit & push.
+  2. Buat dan kirim tag:
+     ```sh
+     git tag v1.2.0
+     git push origin v1.2.0
+     ```
+  3. Tunggu ±10 menit. Halaman **Releases** otomatis berisi
+     `Prompter-v1.2.0-windows.zip`, `-macos.zip`, dan `-linux.tar.gz`.
 
 ## Panduan maintenance
 
 ### Mengganti versi aplikasi
 
 Ubah `APP_VERSION` di `settings.py` **dan** angka versi di `version_info.txt`
-(yang tampil di klik kanan exe → Properties → Details), lalu build ulang.
+(yang tampil di klik kanan exe → Properties → Details), lalu build ulang
+(atau buat tag baru, lihat bagian di atas).
 
 ### Cara menambah pengaturan baru (contoh: "huruf miring")
 
