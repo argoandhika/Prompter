@@ -30,7 +30,7 @@ jobs:
         include:
           - os: windows-latest
             label: windows
-          - os: macos-14          # Mac Apple Silicon (M1/M2/M3/M4)
+          - os: macos-latest      # Mac Apple Silicon (M1/M2/M3/M4)
             label: macos
           - os: ubuntu-22.04      # glibc 2.35 -> jalan di Ubuntu 22.04+, Debian 12+, Fedora 36+, dll.
             label: linux
