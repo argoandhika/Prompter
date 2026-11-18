@@ -17,6 +17,8 @@ Ambil file untuk OS Anda di halaman [**Releases**](../../releases/latest):
 
 Tidak perlu menginstal Python. Di macOS, tombol **Ctrl** pada tabel di bawah = **⌘ Command**.
 
+Ada masalah atau saran? Silakan buka [**Issues**](../../issues).
+
 ## Fitur
 
 - Editor naskah, bisa buka/simpan file `.txt` / `.md`. Naskah terakhir tersimpan otomatis.
